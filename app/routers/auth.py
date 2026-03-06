@@ -10,6 +10,7 @@ from app.auth import (
     authenticate_user,
     create_access_token,
     get_user_by_username,
+    get_current_user,
     ACCESS_TOKEN_EXPIRE_MINUTES
 )
 
