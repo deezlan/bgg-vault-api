@@ -54,3 +54,23 @@ def get_trending(
         )
 
     return query.order_by(Game.avg_rating.desc()).limit(limit).all()
+
+@router.get("/recommend", response_model=list[GameResponse])
+def recommend_games(
+    mechanic: str = Query(..., description="Mechanic to base recommendations on e.g. 'Deck Construction'"),
+    limit: int = Query(10, ge=1, le=50),
+    db: Session = Depends(get_db)
+):
+    """Recommend top rated games that feature a given mechanic."""
+    games = db.query(Game).filter(
+        Game.mechanics.ilike(f"%{mechanic}%"),
+        Game.avg_rating.isnot(None)
+    ).order_by(Game.avg_rating.desc()).limit(limit).all()
+
+    if not games:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No games found featuring mechanic: '{mechanic}'"
+        )
+
+    return games
