@@ -34,3 +34,23 @@ def get_games(
         )
 
     return query.offset(offset).limit(limit).all()
+
+@router.get("/trending", response_model=list[GameResponse])
+def get_trending(
+    decade: Optional[int] = Query(None, description="Filter by decade e.g. 2010 returns 2010-2019"),
+    limit: int = Query(10, ge=1, le=50),
+    db: Session = Depends(get_db)
+):
+    """Return top rated games, optionally filtered by decade."""
+    query = db.query(Game).filter(
+        Game.avg_rating.isnot(None),
+        Game.year_published.isnot(None)
+    )
+
+    if decade:
+        query = query.filter(
+            Game.year_published >= decade,
+            Game.year_published < decade + 10
+        )
+
+    return query.order_by(Game.avg_rating.desc()).limit(limit).all()
