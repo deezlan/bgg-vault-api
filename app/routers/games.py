@@ -74,3 +74,11 @@ def recommend_games(
         )
 
     return games
+
+@router.get("/{game_id}", response_model=GameResponse)
+def get_game(game_id: int, db: Session = Depends(get_db)):
+    """Get full details for a single game by ID."""
+    game = db.query(Game).filter(Game.id == game_id).first()
+    if not game:
+        raise HTTPException(status_code=404, detail="Game not found")
+    return game
