@@ -39,7 +39,7 @@ def seed():
         inserted = 0
         skipped = 0
 
-        with open("data/bgg_dataset.csv", encoding="utf-8") as f:
+        with open("data/bgg_dataset.csv", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f, delimiter=";")
 
             for row in reader:
@@ -53,8 +53,13 @@ def seed():
                     skipped += 1
                     continue
 
+                bgg_id = clean_int(row.get("ID", ""))
+                if bgg_id is None:
+                    skipped += 1
+                    continue
+
                 game = Game(
-                    bgg_id=clean_int(row.get("ID", "")),
+                    bgg_id=bgg_id,
                     title=row.get("Name", "").strip(),
                     year_published=year,
                     min_players=clean_int(row.get("Min Players", "")),
