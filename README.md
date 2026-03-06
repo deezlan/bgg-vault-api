@@ -1,6 +1,47 @@
 # bgg-vault-api
 
+A board game collection tracker and analytics API powered by BoardGameGeek data, built with FastAPI and SQLite.
 
+## Setup
+
+1. Clone the repo and navigate into it
+```bash
+   git clone https://github.com/yourusername/bgg-vault-api.git
+   cd bgg-vault-api
+```
+
+2. Create and activate a virtual environment
+```bash
+   python -m venv venv
+   venv\Scripts\activate  # Windows
+   source venv/bin/activate  # Mac/Linux
+```
+
+3. Install dependencies
+```bash
+   pip install -r requirements.txt
+```
+
+4. Configure environment variables
+```bash
+   cp .env.example .env
+```
+   Then open `.env` and set a secure `SECRET_KEY`.
+
+5. Download the dataset from https://www.kaggle.com/datasets/andrewmvd/board-games  
+   and place `bgg_dataset.csv` inside the `data/` folder.
+
+6. Seed the database
+```bash
+   python seed.py
+```
+
+7. Run the API
+```bash
+   uvicorn app.main:app --reload
+```
+
+8. Open Swagger UI at http://127.0.0.1:8000/docs
 
 ## Data
 
