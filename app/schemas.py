@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 
 class UserCreate(BaseModel):
@@ -42,14 +42,14 @@ class GameResponse(GameBase):
 class CollectionCreate(BaseModel):
     game_id: int
     status: str
-    personal_rating: Optional[float] = None
-    play_count: int = 0
+    personal_rating: Optional[float] = Field(default=None, ge=1.0, le=10.0)
+    play_count: int = Field(default=0, ge=0)
     notes: Optional[str] = None
 
 class CollectionUpdate(BaseModel):
     status: Optional[str] = None
-    personal_rating: Optional[float] = None
-    play_count: Optional[int] = None
+    personal_rating: Optional[float] = Field(default=None, ge=1.0, le=10.0)
+    play_count: Optional[int] = Field(default=None, ge=0)
     notes: Optional[str] = None
 
 class CollectionResponse(CollectionCreate):
