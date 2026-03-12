@@ -83,3 +83,20 @@ def update_collection_item(
     db.commit()
     db.refresh(item)
     return item
+
+@router.delete("/{item_id}", status_code=204)
+def remove_from_collection(
+    item_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Remove a game from the current user's collection."""
+    item = db.query(Collection).filter(
+        Collection.id == item_id,
+        Collection.user_id == current_user.id
+    ).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Collection item not found")
+
+    db.delete(item)
+    db.commit()
