@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from collections import Counter
 from app.database import get_db
 from app.models import Collection, Game, User
-from app.schemas import CollectionCreate, CollectionUpdate, CollectionResponse
+from app.schemas import CollectionCreate, CollectionUpdate, CollectionResponse, GameResponse
 from app.auth import get_current_user
 
 router = APIRouter()
@@ -155,3 +155,54 @@ def get_collection_stats(
         "top_mechanics": top_mechanics,
         "total_plays": total_plays
     }
+
+@router.get("/recommend", response_model=list[GameResponse])
+def recommend_from_collection(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Suggest games not in the user's collection based on their top mechanics."""
+    items = db.query(Collection).filter(
+        Collection.user_id == current_user.id
+    ).all()
+
+    if not items:
+        raise HTTPException(
+            status_code=400,
+            detail="Your collection is empty. Add some games first."
+        )
+
+    game_ids = [item.game_id for item in items]
+    games = db.query(Game).filter(Game.id.in_(game_ids)).all()
+
+    # Find top 3 mechanics from collection
+    all_mechanics = []
+    for game in games:
+        if game.mechanics:
+            all_mechanics.extend([m.strip() for m in game.mechanics.split(",")])
+
+    if not all_mechanics:
+        raise HTTPException(
+            status_code=400,
+            detail="No mechanics data found in your collection."
+        )
+
+    top_mechanics = [m for m, _ in Counter(all_mechanics).most_common(3)]
+
+    # Find highly rated games with those mechanics not already in collection
+    recommendations = []
+    seen_ids = set(game_ids)
+
+    for mechanic in top_mechanics:
+        matches = db.query(Game).filter(
+            Game.mechanics.ilike(f"%{mechanic}%"),
+            Game.avg_rating.isnot(None),
+            ~Game.id.in_(seen_ids)
+        ).order_by(Game.avg_rating.desc()).limit(5).all()
+
+        for match in matches:
+            if match.id not in seen_ids:
+                recommendations.append(match)
+                seen_ids.add(match.id)
+
+    return recommendations[:10]
