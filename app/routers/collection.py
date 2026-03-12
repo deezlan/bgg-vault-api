@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from collections import Counter
 from app.database import get_db
 from app.models import Collection, Game, User
 from app.schemas import CollectionCreate, CollectionUpdate, CollectionResponse
@@ -100,3 +101,57 @@ def remove_from_collection(
 
     db.delete(item)
     db.commit()
+
+@router.get("/stats")
+def get_collection_stats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Return analytics summary for the current user's collection."""
+    items = db.query(Collection).filter(
+        Collection.user_id == current_user.id
+    ).all()
+
+    if not items:
+        return {"message": "Your collection is empty."}
+
+    game_ids = [item.game_id for item in items]
+    games = db.query(Game).filter(Game.id.in_(game_ids)).all()
+    game_map = {game.id: game for game in games}
+
+    # Complexity average
+    complexities = [
+        game_map[item.game_id].complexity
+        for item in items
+        if game_map.get(item.game_id) and game_map[item.game_id].complexity
+    ]
+    avg_complexity = round(sum(complexities) / len(complexities), 2) if complexities else None
+
+    # Personal rating average
+    ratings = [item.personal_rating for item in items if item.personal_rating]
+    avg_personal_rating = round(sum(ratings) / len(ratings), 2) if ratings else None
+
+    # Status breakdown
+    status_counts = Counter(item.status for item in items)
+
+    # Favourite mechanics — flatten all mechanics, count occurrences
+    all_mechanics = []
+    for item in items:
+        game = game_map.get(item.game_id)
+        if game and game.mechanics:
+            all_mechanics.extend(
+                [m.strip() for m in game.mechanics.split(",")]
+            )
+    top_mechanics = [m for m, _ in Counter(all_mechanics).most_common(5)]
+
+    # Total play count
+    total_plays = sum(item.play_count for item in items)
+
+    return {
+        "total_games": len(items),
+        "status_breakdown": dict(status_counts),
+        "average_complexity": avg_complexity,
+        "average_personal_rating": avg_personal_rating,
+        "top_mechanics": top_mechanics,
+        "total_plays": total_plays
+    }
