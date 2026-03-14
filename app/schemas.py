@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
+from enum import Enum
 import re
 
 class UserCreate(BaseModel):
@@ -47,15 +48,20 @@ class GameResponse(GameBase):
     class Config:
         from_attributes = True
 
+class CollectionStatus(str, Enum):
+    owned = "owned"
+    wishlist = "wishlist"
+    played = "played"
+
 class CollectionCreate(BaseModel):
     game_id: int
-    status: str
+    status: CollectionStatus
     personal_rating: Optional[float] = Field(default=None, ge=1.0, le=10.0)
     play_count: int = Field(default=0, ge=0)
     notes: Optional[str] = Field(default=None, max_length=500)
 
 class CollectionUpdate(BaseModel):
-    status: Optional[str] = None
+    status: Optional[CollectionStatus] = None
     personal_rating: Optional[float] = Field(default=None, ge=1.0, le=10.0)
     play_count: Optional[int] = Field(default=None, ge=0)
     notes: Optional[str] = Field(default=None, max_length=500)

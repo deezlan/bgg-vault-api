@@ -8,8 +8,6 @@ from app.auth import get_current_user
 
 router = APIRouter()
 
-VALID_STATUSES = {"owned", "wishlist", "played"}
-
 @router.get("/", response_model=list[CollectionResponse])
 def get_collection(
     db: Session = Depends(get_db),
@@ -27,12 +25,6 @@ def add_to_collection(
     current_user: User = Depends(get_current_user)
 ):
     """Add a game to the current user's collection."""
-    if entry.status not in VALID_STATUSES:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid status. Must be one of: {', '.join(VALID_STATUSES)}"
-        )
-
     game = db.query(Game).filter(Game.id == entry.game_id).first()
     if not game:
         raise HTTPException(status_code=404, detail="Game not found")
@@ -71,12 +63,6 @@ def update_collection_item(
     ).first()
     if not item:
         raise HTTPException(status_code=404, detail="Collection item not found")
-
-    if updates.status and updates.status not in VALID_STATUSES:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Invalid status. Must be one of: {', '.join(VALID_STATUSES)}"
-        )
 
     for field, value in updates.model_dump(exclude_unset=True).items():
         setattr(item, field, value)
