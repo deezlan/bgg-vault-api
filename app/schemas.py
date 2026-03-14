@@ -52,13 +52,13 @@ class CollectionCreate(BaseModel):
     status: str
     personal_rating: Optional[float] = Field(default=None, ge=1.0, le=10.0)
     play_count: int = Field(default=0, ge=0)
-    notes: Optional[str] = None
+    notes: Optional[str] = Field(default=None, max_length=500)
 
 class CollectionUpdate(BaseModel):
     status: Optional[str] = None
     personal_rating: Optional[float] = Field(default=None, ge=1.0, le=10.0)
     play_count: Optional[int] = Field(default=None, ge=0)
-    notes: Optional[str] = None
+    notes: Optional[str] = Field(default=None, max_length=500)
 
 class CollectionResponse(CollectionCreate):
     id: int
