@@ -54,7 +54,7 @@ class CollectionStatus(str, Enum):
     played = "played"
 
 class CollectionCreate(BaseModel):
-    game_id: int
+    game_id: int = Field(gt=0)
     status: CollectionStatus
     personal_rating: Optional[float] = Field(default=None, ge=1.0, le=10.0)
     play_count: int = Field(default=0, ge=0)
