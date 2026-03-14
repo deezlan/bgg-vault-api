@@ -1,10 +1,18 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional
+import re
 
 class UserCreate(BaseModel):
-    username: str
+    username: str = Field(min_length=3, max_length=30)
     email: EmailStr
     password: str
+
+    @field_validator("username")
+    @classmethod
+    def username_alphanumeric(cls, v):
+        if not re.match(r"^[a-zA-Z0-9_]+$", v):
+            raise ValueError("Username must only contain letters, numbers or underscores")
+        return v
 
 class UserResponse(BaseModel):
     id: int
