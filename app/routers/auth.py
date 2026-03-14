@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from datetime import timedelta
 from app.database import get_db
 from app.models import User
-from app.schemas import UserCreate, UserResponse, Token
+from app.schemas import UserCreate, UserResponse, Token, ErrorResponse
 from app.auth import (
     hash_password,
     authenticate_user,
@@ -16,7 +16,10 @@ from app.auth import (
 
 router = APIRouter()
 
-@router.post("/register", response_model=UserResponse, status_code=201)
+@router.post("/register", response_model=UserResponse, status_code=201, responses={
+    400: {"model": ErrorResponse, "description": "Username or email already registered"},
+    422: {"model": ErrorResponse, "description": "Validation error — invalid email format or password too short"}
+})
 def register(user_in: UserCreate, db: Session = Depends(get_db)):
     """Register a new user account."""
     if get_user_by_username(db, user_in.username):
@@ -41,7 +44,9 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
     db.refresh(user)
     return user
 
-@router.post("/login", response_model=Token)
+@router.post("/login", response_model=Token, responses={
+    401: {"model": ErrorResponse, "description": "Incorrect username or password"}
+})
 def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: Session = Depends(get_db)
@@ -60,7 +65,9 @@ def login(
     )
     return {"access_token": access_token, "token_type": "bearer"}
 
-@router.get("/me", response_model=UserResponse)
+@router.get("/me", response_model=UserResponse, responses={
+    401: {"model": ErrorResponse, "description": "Missing or invalid JWT token"}
+})
 def get_me(current_user: User = Depends(get_current_user)):
     """Return the currently authenticated user."""
     return current_user

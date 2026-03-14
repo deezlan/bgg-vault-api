@@ -3,12 +3,17 @@ from sqlalchemy.orm import Session
 from collections import Counter
 from app.database import get_db
 from app.models import Collection, Game, User
-from app.schemas import CollectionCreate, CollectionUpdate, CollectionResponse, GameResponse
+from app.schemas import CollectionCreate, CollectionUpdate, CollectionResponse, GameResponse, ErrorResponse
 from app.auth import get_current_user
 
 router = APIRouter()
 
-@router.get("/", response_model=list[CollectionResponse])
+responses_401 = {401: {"model": ErrorResponse, "description": "Not authenticated"}}
+responses_404 = {404: {"model": ErrorResponse, "description": "Collection item not found"}}
+
+@router.get("/", response_model=list[CollectionResponse], responses={
+    **responses_401
+})
 def get_collection(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -18,7 +23,12 @@ def get_collection(
         Collection.user_id == current_user.id
     ).all()
 
-@router.post("/", response_model=CollectionResponse, status_code=201)
+@router.post("/", response_model=CollectionResponse, status_code=201, responses={
+    **responses_401,
+    400: {"model": ErrorResponse, "description": "Game already in collection"},
+    404: {"model": ErrorResponse, "description": "Game not found"},
+    422: {"model": ErrorResponse, "description": "Validation error — invalid field values"}
+})
 def add_to_collection(
     entry: CollectionCreate,
     db: Session = Depends(get_db),
@@ -49,7 +59,11 @@ def add_to_collection(
     db.refresh(item)
     return item
 
-@router.patch("/{item_id}", response_model=CollectionResponse)
+@router.patch("/{item_id}", response_model=CollectionResponse, responses={
+    **responses_401,
+    **responses_404,
+    422: {"model": ErrorResponse, "description": "Validation error — invalid field values"}
+})
 def update_collection_item(
     item_id: int,
     updates: CollectionUpdate,
@@ -71,7 +85,10 @@ def update_collection_item(
     db.refresh(item)
     return item
 
-@router.delete("/{item_id}", status_code=204)
+@router.delete("/{item_id}", status_code=204, responses={
+    **responses_401,
+    **responses_404
+})
 def remove_from_collection(
     item_id: int,
     db: Session = Depends(get_db),
@@ -88,7 +105,9 @@ def remove_from_collection(
     db.delete(item)
     db.commit()
 
-@router.get("/stats")
+@router.get("/stats", responses={
+    **responses_401
+})
 def get_collection_stats(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)
@@ -142,7 +161,10 @@ def get_collection_stats(
         "total_plays": total_plays
     }
 
-@router.get("/recommend", response_model=list[GameResponse])
+@router.get("/recommend", response_model=list[GameResponse], responses={
+    **responses_401,
+    400: {"model": ErrorResponse, "description": "Collection empty or no mechanics data found"}
+})
 def recommend_from_collection(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user)

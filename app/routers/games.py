@@ -1,14 +1,15 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import func
 from typing import Optional
 from app.database import get_db
 from app.models import Game
-from app.schemas import GameResponse
+from app.schemas import GameResponse, ErrorResponse
 
 router = APIRouter()
 
-@router.get("/", response_model=list[GameResponse])
+@router.get("/", response_model=list[GameResponse], responses={
+    422: {"model": ErrorResponse, "description": "Invalid query parameters"}
+})
 def get_games(
     search: Optional[str] = Query(None, description="Search by game title"),
     mechanic: Optional[str] = Query(None, description="Filter by mechanic e.g. 'Deck Construction'"),
@@ -35,7 +36,9 @@ def get_games(
 
     return query.offset(offset).limit(limit).all()
 
-@router.get("/trending", response_model=list[GameResponse])
+@router.get("/trending", response_model=list[GameResponse], responses={
+    422: {"model": ErrorResponse, "description": "Invalid query parameters"}
+})
 def get_trending(
     decade: Optional[int] = Query(None, description="Filter by decade e.g. 2010 returns 2010-2019"),
     limit: int = Query(10, ge=1, le=50),
@@ -55,7 +58,10 @@ def get_trending(
 
     return query.order_by(Game.avg_rating.desc()).limit(limit).all()
 
-@router.get("/recommend", response_model=list[GameResponse])
+@router.get("/recommend", response_model=list[GameResponse], responses={
+    404: {"model": ErrorResponse, "description": "No games found for the requested mechanic"},
+    422: {"model": ErrorResponse, "description": "Invalid query parameters"}
+})
 def recommend_games(
     mechanic: str = Query(..., description="Mechanic to base recommendations on e.g. 'Deck Construction'"),
     limit: int = Query(10, ge=1, le=50),
@@ -75,7 +81,10 @@ def recommend_games(
 
     return games
 
-@router.get("/{game_id}", response_model=GameResponse)
+@router.get("/{game_id}", response_model=GameResponse, responses={
+    404: {"model": ErrorResponse, "description": "Game not found"},
+    422: {"model": ErrorResponse, "description": "game_id must be a valid integer"}
+})
 def get_game(game_id: int, db: Session = Depends(get_db)):
     """Get full details for a single game by ID."""
     game = db.query(Game).filter(Game.id == game_id).first()
