@@ -13,7 +13,7 @@ def get_games(
     search: Optional[str] = Query(None, description="Search by game title"),
     mechanic: Optional[str] = Query(None, description="Filter by mechanic e.g. 'Deck Construction'"),
     category: Optional[str] = Query(None, description="Filter by domain e.g. 'Strategy Games'"),
-    players: Optional[int] = Query(None, description="Filter by number of players supported"),
+    players: Optional[int] = Query(default=None, ge=1, le=100, description="Filter by number of players supported"),
     limit: int = Query(20, ge=1, le=100, description="Number of results per page"),
     offset: int = Query(0, ge=0, description="Number of results to skip"),
     db: Session = Depends(get_db)
