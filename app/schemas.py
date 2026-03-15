@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
 from typing import Optional
 from enum import Enum
 import re
@@ -16,13 +16,11 @@ class UserCreate(BaseModel):
         return v
 
 class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     username: str
     email: EmailStr
     is_active: bool
-
-    class Config:
-        from_attributes = True
 
 class Token(BaseModel):
     access_token: str
@@ -43,10 +41,9 @@ class GameBase(BaseModel):
     categories: Optional[str]
 
 class GameResponse(GameBase):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     bgg_id: int
-    class Config:
-        from_attributes = True
 
 class CollectionStatus(str, Enum):
     owned = "owned"
@@ -67,9 +64,8 @@ class CollectionUpdate(BaseModel):
     notes: Optional[str] = Field(default=None, max_length=500)
 
 class CollectionResponse(CollectionCreate):
+    model_config = ConfigDict(from_attributes=True)
     id: int
-    class Config:
-        from_attributes = True
 
 class ErrorResponse(BaseModel):
     detail: str
