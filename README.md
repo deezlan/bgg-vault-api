@@ -52,3 +52,28 @@ sourced from Kaggle (andrewmvd/board-games).
 1. Download `bgg_dataset.csv` from https://www.kaggle.com/datasets/andrewmvd/board-games
 2. Place it in this `data/` folder
 3. Run `python seed.py`
+
+## Testing
+
+The test suite uses pytest with an isolated SQLite test database. No seeding or setup is required — the test database is created and torn down automatically.
+
+### Run all tests
+```bash
+pytest -v
+```
+
+### Run a specific test file
+```bash
+pytest tests/test_auth.py -v
+pytest tests/test_games.py -v
+pytest tests/test_collection.py -v
+```
+
+### Test coverage
+| File | Tests |
+|---|---|
+| `tests/test_auth.py` | 13 |
+| `tests/test_games.py` | 22 |
+| `tests/test_collection.py` | 28 |
+| **Total** | **63** |
+```
