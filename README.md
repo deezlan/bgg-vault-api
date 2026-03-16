@@ -76,4 +76,11 @@ pytest tests/test_collection.py -v
 | `tests/test_games.py` | 22 |
 | `tests/test_collection.py` | 28 |
 | **Total** | **63** |
-```
+
+## API Documentation
+
+Interactive documentation is available via Swagger UI when the API is running locally:
+
+- **Swagger UI**: http://127.0.0.1:8000/docs
+- **Redoc**: http://127.0.0.1:8000/redoc
+- **PDF**: See `docs/api-documentation.pdf`
