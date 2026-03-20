@@ -23,9 +23,21 @@ Built with FastAPI, SQLAlchemy, and SQLite. Authentication is handled via JWT to
 
 2. Create and activate a virtual environment
 ```bash
-   python -m venv venv
-   venv\Scripts\activate  # Windows
-   source venv/bin/activate  # Mac/Linux
+# Windows Command Prompt
+python -m venv venv
+venv\Scripts\activate.bat
+
+# Windows PowerShell
+python -m venv venv
+venv\Scripts\Activate.ps1
+
+# Windows Git Bash
+python -m venv venv
+source venv/Scripts/activate
+
+# Mac/Linux
+python -m venv venv
+source venv/bin/activate
 ```
 
 3. Install dependencies
