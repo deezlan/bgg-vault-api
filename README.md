@@ -2,11 +2,22 @@
 
 A board game collection tracker and analytics API powered by BoardGameGeek data, built with FastAPI and SQLite.
 
+## Overview
+BGG Vault API lets users browse and discover board games from a dataset of ~20,000 titles sourced from BoardGameGeek, and manage a personal collection with play tracking and personalised recommendations. It provides analytics endpoints for trending games, mechanic-based discovery, and collection statistics.
+
+Built with FastAPI, SQLAlchemy, and SQLite. Authentication is handled via JWT tokens.
+
+## API Documentation
+
+- **Swagger UI** (interactive, requires local server): http://127.0.0.1:8000/docs
+- **Redoc** (interactive, requires local server): http://127.0.0.1:8000/redoc
+- **PDF Reference**: [docs/api-documentation.pdf](https://github.com/deizlan/bgg-vault-api/blob/main/docs/api-documentation.pdf)
+
 ## Setup
 
 1. Clone the repo and navigate into it
 ```bash
-   git clone https://github.com/yourusername/bgg-vault-api.git
+   git clone https://github.com/deezlan/bgg-vault-api.git
    cd bgg-vault-api
 ```
 
@@ -43,15 +54,18 @@ A board game collection tracker and analytics API powered by BoardGameGeek data,
 
 8. Open Swagger UI at http://127.0.0.1:8000/docs
 
-## Data
+## Authentication
 
-The dataset used is the Board Games dataset from BoardGameGeek, 
-sourced from Kaggle (andrewmvd/board-games).
+The API uses JWT authentication via OAuth2 Password flow. To access protected endpoints in Swagger UI:
 
-**To seed the database:**
-1. Download `bgg_dataset.csv` from https://www.kaggle.com/datasets/andrewmvd/board-games
-2. Place it in this `data/` folder
-3. Run `python seed.py`
+1. `POST /auth/register` — create an account
+2. `POST /auth/login` — receive an access token
+3. Click the **Authorize** button (🔓) at the top of Swagger UI
+4. Enter your **username** and **password** and click **Authorize**
+
+Swagger will handle attaching the token to all subsequent protected requests automatically.
+
+Token lifetime is configured via `ACCESS_TOKEN_EXPIRE_MINUTES` in `.env` (default: 30 minutes).
 
 ## Testing
 
@@ -76,11 +90,3 @@ pytest tests/test_collection.py -v
 | `tests/test_games.py` | 22 |
 | `tests/test_collection.py` | 28 |
 | **Total** | **63** |
-
-## API Documentation
-
-Interactive documentation is available via Swagger UI when the API is running locally:
-
-- **Swagger UI**: http://127.0.0.1:8000/docs
-- **Redoc**: http://127.0.0.1:8000/redoc
-- **PDF**: See `docs/api-documentation.pdf`
