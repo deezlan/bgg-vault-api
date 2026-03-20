@@ -1,5 +1,33 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, Field, field_validator, ConfigDict
 from typing import Optional
+from enum import Enum
+import re
+
+class UserCreate(BaseModel):
+    username: str = Field(min_length=3, max_length=30)
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=72)
+
+    @field_validator("username")
+    @classmethod
+    def username_alphanumeric(cls, v):
+        if not re.match(r"^[a-zA-Z0-9_]+$", v):
+            raise ValueError("Username must only contain letters, numbers or underscores")
+        return v
+
+class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    username: str
+    email: EmailStr
+    is_active: bool
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
 
 class GameBase(BaseModel):
     title: str
@@ -13,25 +41,31 @@ class GameBase(BaseModel):
     categories: Optional[str]
 
 class GameResponse(GameBase):
+    model_config = ConfigDict(from_attributes=True)
     id: int
     bgg_id: int
-    class Config:
-        from_attributes = True
+
+class CollectionStatus(str, Enum):
+    owned = "owned"
+    wishlist = "wishlist"
+    played = "played"
 
 class CollectionCreate(BaseModel):
-    game_id: int
-    status: str
-    personal_rating: Optional[float] = None
-    play_count: int = 0
-    notes: Optional[str] = None
+    game_id: int = Field(gt=0)
+    status: CollectionStatus
+    personal_rating: Optional[float] = Field(default=None, ge=1.0, le=10.0)
+    play_count: int = Field(default=0, ge=0)
+    notes: Optional[str] = Field(default=None, max_length=500)
 
 class CollectionUpdate(BaseModel):
-    status: Optional[str] = None
-    personal_rating: Optional[float] = None
-    play_count: Optional[int] = None
-    notes: Optional[str] = None
+    status: Optional[CollectionStatus] = None
+    personal_rating: Optional[float] = Field(default=None, ge=1.0, le=10.0)
+    play_count: Optional[int] = Field(default=None, ge=0)
+    notes: Optional[str] = Field(default=None, max_length=500)
 
 class CollectionResponse(CollectionCreate):
+    model_config = ConfigDict(from_attributes=True)
     id: int
-    class Config:
-        from_attributes = True
+
+class ErrorResponse(BaseModel):
+    detail: str
